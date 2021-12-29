@@ -14,9 +14,9 @@ $_.localpath -notmatch 'Windows' }).localpath) {
                         $Manifest = Get-Content $ManifestPath | ConvertFrom-Json
                         [PSCustomObject] @{
                             Username      = $UserPath | Split-Path -Leaf
-                            Extension     = $Extension
-                            Version       = $Manifest.version
-                            Folder        = $Folder.name
+                            Browser       = $Pair.Key
+                            Version       = $Manifest.Version
+                            Folder        = $ExtFolder.Name
                             ExtensionName = if ($Manifest.name -like '__MSG*') {
                                 $AppId = ($Manifest.name -replace '__MSG_','').Trim('_')
                                 @('_locales\en_US','_locales\en').foreach{
@@ -36,7 +36,7 @@ $_.localpath -notmatch 'Windows' }).localpath) {
                             } else {
                                 $Manifest.name
                             }
-                        }
+                        } | ConvertTo-Json -Compress
                     }
                 }
             }
