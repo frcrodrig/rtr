@@ -15,7 +15,7 @@ if ($CurrentUser) {
 }
 foreach ($Path in $InstallPaths) {
     if (Test-Path $Path) {
-        Get-ItemProperty -Path $Path -Recurse | Where-Object { $_.DisplayName -and $_.Publisher -and
+        Get-ItemProperty -Path "$Path\*" -Recurse | Where-Object { $_.DisplayName -and $_.Publisher -and
         $_.DisplayVersion } | Select-Object DisplayName, DisplayVersion, Publisher | Format-List
     }
 }
