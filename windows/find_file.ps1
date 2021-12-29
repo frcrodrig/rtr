@@ -78,12 +78,15 @@ begin {
 process {
     Start-Process -FilePath powershell.exe -ArgumentList "-Command &{ $ScriptBlock } $Arguments" -PassThru |
     ForEach-Object {
-        $Message = if ($HumioUri -and $HumioToken) {
-            "Check Humio for results"
-        } else {
-            $Filename = Join-Path -Path $env:SystemDrive -ChildPath "find_file_$(Get-Date -Format FileDate).csv"
-            "Check $Filename for results"
-        }
-        "[$($_.Id): $($_.ProcessName)] Search started. $Message."
+        [PSCustomObject] @{
+            hostname = [System.Net.Dns]::GetHostname()
+            pid      = $_.Id
+            process  = $_.Name
+            message  = if ($HumioUri -and $HumioToken) {
+                'check_humio_for_events'
+            } else {
+                Join-Path -Path $env:SystemDrive -ChildPath "find_file_$(Get-Date -Format FileDate).csv"
+            }
+        } | ConvertTo-Json -Compress
     }
 }
