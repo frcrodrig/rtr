@@ -84,6 +84,6 @@ process {
             $Filename = Join-Path -Path $env:SystemDrive -ChildPath "find_file_$(Get-Date -Format FileDate).csv"
             "Check $Filename for results"
         }
-        "[$($_.Id)] $($_.ProcessName) - Search started. $Message."
+        "[$($_.Id): $($_.ProcessName)] Search started. $Message."
     }
 }
