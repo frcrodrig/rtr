@@ -15,13 +15,9 @@ if ($CurrentUser) {
 }
 foreach ($Path in $InstallPaths) {
     if (Test-Path $Path) {
-        (Get-ItemProperty -Path "$Path\*" | Where-Object { $_.DisplayName -and $_.DisplayVersion -and
+        Get-ItemProperty -Path "$Path\*" | Where-Object { $_.DisplayName -and $_.DisplayVersion -and
         $_.Publisher } | Select-Object DisplayName, DisplayVersion, Publisher | ForEach-Object {
-            [PSCustomObject] @{
-                DisplayName    = $_.DisplayName
-                DisplayVersion = $_.DisplayVersion
-                Publisher      = $_.Publisher
-            }
-        }) | Format-List
+            "$($_.DisplayName) $($_.DisplayVersion) [$($_.Publisher)]"
+        }
     }
 }
