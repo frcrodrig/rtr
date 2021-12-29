@@ -14,16 +14,20 @@ param(
     [string] $Exclude,
 
     [Parameter(Position = 5)]
-    [string] $HumioUri,
+    [System.Uri] $HumioUri,
 
     [Parameter(Position = 6)]
+    [ValidatePattern('^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$')]
     [string] $HumioToken
 )
 begin {
     $ScriptBlock = {
         param($Path, $Filter, $Include, $Exclude, $HumioUri, $HumioToken)
         function Send-HumioEvent ($Result, $HumioUri, $HumioToken) {
-            $Fields = @{ host = [System.Net.Dns]::GetHostname() }
+            $Fields = @{
+                host   = [System.Net.Dns]::GetHostname()
+                script = 'find_file.ps1'
+            }
             $IdPath = 'HKLM:\SYSTEM\CrowdStrike\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\' +
                 '{16e0423f-7058-48c9-a204-725362b67639}\Default'
             if (Test-Path $IdPath) {
@@ -53,11 +57,11 @@ begin {
         Get-ChildItem @Param | Select-Object FullName, CreationTime, LastWriteTime, LastAccessTime |
         ForEach-Object {
             $Result = [PSCustomObject] @{
-                FullName         = $_.FullName
-                CreationTimeUtc  = $_.CreationTime.ToFileTimeUtc()
-                LastWriteTimeUtc = $_.LastWriteTime.ToFileTimeUtc()
-                LastAccessTime   = $_.LastAccessTime.ToFileTimeUtc()
-                Sha256           = (Get-FileHash -Path $_.FullName -Algorithm Sha256).Hash.ToLower()
+                FullName          = $_.FullName
+                CreationTimeUtc   = $_.CreationTime.ToFileTimeUtc()
+                LastWriteTimeUtc  = $_.LastWriteTime.ToFileTimeUtc()
+                LastAccessTimeUtc = $_.LastAccessTime.ToFileTimeUtc()
+                Sha256            = (Get-FileHash -Path $_.FullName -Algorithm Sha256).Hash.ToLower()
             }
             if ($HumioUri -and $HumioToken) {
                 Send-HumioEvent $Result $HumioUri $HumioToken
