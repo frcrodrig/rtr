@@ -2,44 +2,51 @@ $Browsers = @{
     Chrome = 'AppData\Local\Google\Chrome\User Data\Default\Extensions'
     Edge   = 'AppData\Local\Microsoft\Edge\User Data\Default\Extensions'
 }
-foreach ($UserPath in (Get-WmiObject win32_userprofile | Where-Object {
-$_.localpath -notmatch 'Windows' }).localpath) {
+foreach ($Path in (Get-WmiObject win32_userprofile | Where-Object localpath -notmatch 'Windows').localpath) {
     foreach ($Pair in $Browsers.GetEnumerator()) {
-        $TargetPath = Join-Path -Path $UserPath -ChildPath $Pair.Value
-        if (Test-Path -Path $TargetPath) {
-            foreach ($ExtFolder in (Get-Childitem $TargetPath | Where-Object { $_.Name -ne 'Temp' })) {
-                foreach ($Version in (Get-Childitem -Path $ExtFolder.FullName)) {
-                    $ManifestPath = Join-Path -Path $Version.FullName -ChildPath manifest.json
-                    if (Test-Path -Path $ManifestPath) {
-                        $Manifest = Get-Content $ManifestPath | ConvertFrom-Json
-                        [PSCustomObject] @{
-                            Username      = $UserPath | Split-Path -Leaf
-                            Browser       = $Pair.Key
-                            Version       = $Manifest.Version
-                            Folder        = $ExtFolder.Name
-                            ExtensionName = if ($Manifest.name -like '__MSG*') {
-                                $AppId = ($Manifest.name -replace '__MSG_','').Trim('_')
-                                @('_locales\en_US','_locales\en').foreach{
-                                    $Messages = Join-Path -Path $Version.Fullname -ChildPath $_
-                                    $Messages = Join-Path -Path $Messages -ChildPath messages.json
-                                    if (Test-Path -Path $Messages) {
-                                        $AppManifest = Get-Content $Messages | ConvertFrom-Json
-                                        $ExtName = @('appName','extName','extensionName','app_name',
-                                        'application_title',$AppId).foreach{
-                                            if ($AppManifest.$_.message) {
-                                                $AppManifest.$_.message
-                                            }
+        $Target = Join-Path -Path $Path -ChildPath $Pair.Value
+        if (Test-Path -Path $Target) {
+            foreach ($Folder in (Get-ChildItem $Target | Where-Object { $_.Name -ne 'Temp' })) {
+                foreach ($Result in (Get-ChildItem -Path $Folder.FullName)) {
+                    $Manifest = Join-Path -Path $Result.FullName -ChildPath manifest.json
+                    if (Test-Path -Path $Manifest) {
+                        Get-Content $Manifest | ConvertFrom-Json | ForEach-Object {
+                            [PSCustomObject] @{
+                                hostname          = [System.Net.Dns]::GetHostname()
+                                username          = $Path | Split-Path -Leaf
+                                browser           = $Pair.Key
+                                extension_name    = if ($_.Name -notlike '__MSG*') {
+                                    $_.Name
+                                } else {
+                                    $Id = ($_.Name -replace '__MSG_','').Trim('_')
+                                    @('_locales\en_US','_locales\en').foreach{
+                                        $Messages = Join-Path -Path $Result.Fullname -ChildPath $_
+                                        $Messages = Join-Path -Path $Messages -ChildPath messages.json
+                                        if (Test-Path -Path $Messages) {
+                                            $Content = Get-Content $Messages | ConvertFrom-Json
+                                            (@('appName','extName','extensionName','app_name',
+                                            'application_title',$Id).foreach{
+                                                if ($Content.$_.message) {
+                                                    $Content.$_.message
+                                                }
+                                            }) | Select-Object -First 1
                                         }
-                                        $ExtName | Select-Object -First 1
                                     }
                                 }
-                            } else {
-                                $Manifest.name
-                            }
-                        } | ConvertTo-Json -Compress
+                                extension_version = $_.Version
+                                extension_id      = $Folder.Name
+                            } | ConvertTo-Json -Compress
+                        }
                     }
                 }
             }
+        } else {
+            [PSCustomObject] @{
+                hostname = [System.Net.Dns]::GetHostname()
+                username = $Path | Split-Path -Leaf
+                browser  = $Pair.Key
+                error    = 'no_extensions_found'
+            } | ConvertTo-Json -Compress
         }
     }
 }
