@@ -22,7 +22,7 @@ foreach ($Path in $InstallPaths) {
                 application_name      = $_.DisplayName
                 application_version   = $_.DisplayVersion
                 application_publisher = $_.Publisher
-            } | ConvertTo-Json -Compress
-        }
+            }
+        } | ConvertTo-Json -Compress
     }
 }
