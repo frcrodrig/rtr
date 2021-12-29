@@ -22,7 +22,7 @@ param(
 begin {
     $ScriptBlock = {
         param($Path, $Filter, $Include, $Exclude, $HumioUri, $HumioToken)
-        function Send-HumioEvent {
+        function Send-HumioEvent ($Result, $HumioUri, $HumioToken) {
             $Fields = @{ host = [System.Net.Dns]::GetHostname() }
             $IdPath = 'HKLM:\SYSTEM\CrowdStrike\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\' +
                 '{16e0423f-7058-48c9-a204-725362b67639}\Default'
@@ -36,7 +36,7 @@ begin {
                 Uri             = $HumioUri
                 Method          = 'post'
                 Headers         = @{ authorization  = (@('bearer', $HumioToken) -join ' ') }
-                Body            = @{ fields = $Fields; messages = $args }
+                Body            = @{ fields = $Fields; messages = $Result }
                 UseBasicParsing = $true
             }
             $Request.Body = ConvertTo-Json -InputObject $Request.Body -Compress
@@ -60,9 +60,9 @@ begin {
                 Sha256           = (Get-FileHash -Path $_.FullName -Algorithm Sha256).Hash.ToLower()
             }
             if ($HumioUri -and $HumioToken) {
-                Send-HumioEvent $Result
+                Send-HumioEvent $Result $HumioUri $HumioToken
             } else {
-                Export-Csv -InputObject $Result -Path (Join-Path -Path $env:SystemDrive -ChildPath "find_file_$(
+                $Result | Export-Csv -Path (Join-Path -Path $env:SystemDrive -ChildPath "find_file_$(
                     Get-Date -Format FileDate).csv") -NoTypeInformation -Append
             }
         }
