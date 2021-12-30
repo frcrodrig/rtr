@@ -2,7 +2,8 @@ $Browsers = @{
     Chrome = 'AppData\Local\Google\Chrome\User Data\Default\Extensions'
     Edge   = 'AppData\Local\Microsoft\Edge\User Data\Default\Extensions'
 }
-foreach ($Path in (Get-WmiObject win32_userprofile | Where-Object localpath -notmatch 'Windows').localpath) {
+$Output = foreach ($Path in (Get-WmiObject win32_userprofile |
+Where-Object localpath -notmatch 'Windows').localpath) {
     foreach ($Pair in $Browsers.GetEnumerator()) {
         $Target = Join-Path -Path $Path -ChildPath $Pair.Value
         if (Test-Path -Path $Target) {
@@ -12,10 +13,10 @@ foreach ($Path in (Get-WmiObject win32_userprofile | Where-Object localpath -not
                     if (Test-Path -Path $Manifest) {
                         Get-Content $Manifest | ConvertFrom-Json | ForEach-Object {
                             [PSCustomObject] @{
-                                hostname          = [System.Net.Dns]::GetHostname()
-                                username          = $Path | Split-Path -Leaf
-                                browser           = $Pair.Key
-                                extension_name    = if ($_.Name -notlike '__MSG*') {
+                                hostname  = [System.Net.Dns]::GetHostname()
+                                username  = $Path | Split-Path -Leaf
+                                browser   = $Pair.Key
+                                extension = if ($_.Name -notlike '__MSG*') {
                                     $_.Name
                                 } else {
                                     $Id = ($_.Name -replace '__MSG_','').Trim('_')
@@ -33,20 +34,18 @@ foreach ($Path in (Get-WmiObject win32_userprofile | Where-Object localpath -not
                                         }
                                     }
                                 }
-                                extension_version = $_.Version
-                                extension_id      = $Folder.Name
+                                version   = $_.Version
+                                id        = $Folder.Name
                             } | ConvertTo-Json -Compress
                         }
                     }
                 }
             }
-        } else {
-            [PSCustomObject] @{
-                hostname = [System.Net.Dns]::GetHostname()
-                username = $Path | Split-Path -Leaf
-                browser  = $Pair.Key
-                error    = 'no_extensions_found'
-            } | ConvertTo-Json -Compress
         }
     }
+}
+if ($Output) {
+    $Output
+} else {
+    Write-Error 'no_extensions_found'
 }
