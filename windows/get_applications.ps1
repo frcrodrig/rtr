@@ -13,16 +13,21 @@ if ($CurrentUser) {
         }
     }
 }
-foreach ($Path in $InstallPaths) {
+$Output = foreach ($Path in $InstallPaths) {
     if (Test-Path $Path) {
         Get-ItemProperty -Path "$Path\*" | Where-Object { $_.DisplayName -and $_.DisplayVersion -and
         $_.Publisher } | Select-Object DisplayName, DisplayVersion, Publisher | ForEach-Object {
             [PSCustomObject] @{
-                hostname              = [System.Net.Dns]::GetHostname()
-                application_name      = $_.DisplayName
-                application_version   = $_.DisplayVersion
-                application_publisher = $_.Publisher
-            }
-        } | ConvertTo-Json -Compress
+                hostname  = [System.Net.Dns]::GetHostname()
+                name      = $_.DisplayName
+                version   = $_.DisplayVersion
+                publisher = $_.Publisher
+            } | ConvertTo-Json -Compress
+        }
     }
+}
+if ($Output) {
+    $Output
+} else {
+    Write-Error 'no_applications_found'
 }
