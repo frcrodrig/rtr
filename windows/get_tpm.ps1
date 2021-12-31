@@ -1,5 +1,5 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-Tpm
+$Content = Get-Tpm -ErrorAction SilentlyContinue
 if ($Content) {
     $Item = [PSCustomObject] @{ Hostname = $LocalHost }
     $Content.PSObject.Properties.Where({ $_.MemberType -eq 'Property' }) | ForEach-Object {
