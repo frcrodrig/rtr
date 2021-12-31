@@ -13,7 +13,6 @@ if ($Content) {
             RemoteAddress = $_.RemoteAddress
             RemotePort    = $_.RemotePort
             State         = $_.State
-
         } | ConvertTo-Json -Compress
     }
 } else {
