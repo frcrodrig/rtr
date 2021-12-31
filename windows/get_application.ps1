@@ -22,7 +22,7 @@ $Content = foreach ($Path in $InstallPaths) {
     }
 }
 if ($Content) {
-    $Content | ForEach-Object {
+    $Content | Where-Object { $_ } | ForEach-Object {
         [PSCustomObject] @{
             Hostname       = $LocalHost
             DisplayName    = $_.DisplayName

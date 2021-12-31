@@ -1,7 +1,7 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
 $Content = Get-LocalGroupMember -Group Administrators -ErrorAction SilentlyContinue
 if ($Content) {
-    $Content | ForEach-Object {
+    $Content | Where-Object { $_ } | ForEach-Object {
         [PSCustomObject] @{
             Hostname        = $LocalHost
             ObjectClass     = $_.ObjectClass

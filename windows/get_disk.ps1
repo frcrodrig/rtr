@@ -11,7 +11,7 @@ $Kernel32 = Add-Type -MemberDefinition $Definition -Name Kernel32 -Namespace Win
 $Content = Get-Volume -ErrorAction SilentlyContinue | Select-Object DriveLetter, FileSystemLabel,
     FileSystem, SizeRemaining
 if ($Content) {
-    $Content | ForEach-Object {
+    $Content | Where-Object { $_ } | ForEach-Object {
         $DevicePath = $Kernel32::QueryDosDevice("$($_.DriveLetter):",$StringBuilder,255)
         [PSCustomObject] @{
             Hostname        = $LocalHost

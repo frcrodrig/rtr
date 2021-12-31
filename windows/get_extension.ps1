@@ -46,7 +46,7 @@ Where-Object localpath -notmatch 'Windows').localpath) {
     }
 }
 if ($Content) {
-    $Content | ForEach-Object {
+    $Content | Where-Object { $_ } | ForEach-Object {
         $_ | ConvertTo-Json -Compress
     }
 } else {

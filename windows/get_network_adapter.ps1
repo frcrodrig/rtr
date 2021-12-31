@@ -2,7 +2,7 @@ $LocalHost = [System.Net.Dns]::GetHostname()
 $Content = Get-NetAdapter -ErrorAction SilentlyContinue | Select-Object Name, InterfaceDescription,
     MacAddress, Status
 if ($Content) {
-    $Content | ForEach-Object {
+    $Content | Where-Object { $_ } | ForEach-Object {
         [PSCustomObject] @{
             Hostname             = $LocalHost
             Name                 = $_.Name

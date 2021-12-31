@@ -18,7 +18,7 @@ $Content = foreach ($Username in (Get-WmiObject Win32_ComputerSystem -ErrorActio
     }
 }
 if ($Content) {
-    $Content | ForEach-Object {
+    $Content | Where-Object { $_ } | ForEach-Object {
         $_ | ConvertTo-Json -Compress
     }
 } else {

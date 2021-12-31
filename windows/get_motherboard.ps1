@@ -2,7 +2,7 @@ $LocalHost = [System.Net.Dns]::GetHostname()
 $Content = Get-WmiObject -ClassName Win32_Baseboard -ErrorAction SilentlyContinue | Select-Object Manufacturer,
     Product, Model, SerialNumber
 if ($Content) {
-    $Content | ForEach-Object {
+    $Content | Where-Object { $_ } | ForEach-Object {
         [PSCustomObject] @{
             Hostname     = $LocalHost
             Manufacturer = $_.Manufacturer

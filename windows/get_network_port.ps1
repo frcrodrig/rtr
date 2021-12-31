@@ -5,7 +5,7 @@ $Content = @(
     Get-NetUDPEndpoint -ErrorAction SilentlyContinue | Select-Object LocalAddress, LocalPort
 )
 if ($Content) {
-    $Content | ForEach-Object {
+    $Content | Where-Object { $_ } | ForEach-Object {
         [PSCustomObject] @{
             Hostname      = $LocalHost
             Protocol      = if ($_.State) { 'TCP' } else { 'UDP' }

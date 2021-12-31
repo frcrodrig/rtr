@@ -4,7 +4,7 @@ $Winlogon = Get-ItemProperty -Path (
 $Content = Get-ItemProperty 'HKCU:\Volatile Environment' -ErrorAction SilentlyContinue |
     Select-Object USERDOMAIN, LOGONSERVER, USERNAME, USERPROFILE
 if ($Content) {
-    $Content | ForEach-Object {
+    $Content | Where-Object { $_ } | ForEach-Object {
         [PSCustomObject] @{
             Hostname              = $LocalHost
             LastUsedUsername      = $Winlogon.LastUsedUsername
