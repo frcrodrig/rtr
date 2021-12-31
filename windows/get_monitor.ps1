@@ -1,5 +1,5 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-WmiObject -Namespace root\wmi -Class WmiMonitorID |
+$Content = Get-WmiObject -Namespace root\wmi -Class WmiMonitorID -ErrorAction SilentlyContinue |
     Select-Object ManufacturerName, UserFriendlyName, SerialNumberID
 if ($Content) {
     $Content | ForEach-Object {
