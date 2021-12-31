@@ -1,5 +1,5 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-WmiObject Win32_Service | Where-Object { $_.State -eq "Running" } |
+$Content = Get-WmiObject Win32_Service -ErrorAction SilentlyContinue | Where-Object { $_.State -eq "Running" } |
     Select-Object ProcessId, Name, PathName
 if ($Content) {
     $Content | ForEach-Object {
