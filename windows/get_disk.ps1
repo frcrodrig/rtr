@@ -8,7 +8,8 @@ public static extern uint QueryDosDevice(
 ‘@
 $StringBuilder = New-Object System.Text.StringBuilder(65536)
 $Kernel32 = Add-Type -MemberDefinition $Definition -Name Kernel32 -Namespace Win32 -PassThru
-$Content = Get-Volume | Select-Object DriveLetter, FileSystemLabel, FileSystem, SizeRemaining
+$Content = Get-Volume -ErrorAction SilentlyContinue | Select-Object DriveLetter, FileSystemLabel,
+    FileSystem, SizeRemaining
 if ($Content) {
     $Content | ForEach-Object {
         $DevicePath = $Kernel32::QueryDosDevice("$($_.DriveLetter):",$StringBuilder,255)
