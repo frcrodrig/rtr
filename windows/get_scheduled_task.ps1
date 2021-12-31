@@ -1,5 +1,5 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-ChildItem -Path "$($env:SYSTEMROOT)\System32\Tasks" -File -Recurse |
+$Content = Get-ChildItem -Path "$($env:SYSTEMROOT)\System32\Tasks" -File -Recurse -ErrorAction SilentlyContinue |
     Select-Object Name, FullName
 if ($Content) {
     foreach ($Task in $Content) {
