@@ -21,5 +21,5 @@ Get-Volume | Select-Object DriveLetter, FileSystemLabel, FileSystem, SizeRemaini
         } else {
             $null
         }
-    }
+    } | ConvertTo-Json -Compress
 }
