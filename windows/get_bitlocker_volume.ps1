@@ -1,5 +1,5 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-BitLockerVolume | Select-Object -ExcludeProperty ComputerName
+$Content = Get-BitLockerVolume -ErrorAction SilentlyContinue | Select-Object -ExcludeProperty ComputerName
 if ($Content) {
     $Item = [PSCustomObject] @{ Hostname = $LocalHost }
     $Content.PSObject.Properties.Where({ $_.MemberType -eq 'Property' }) | ForEach-Object {
