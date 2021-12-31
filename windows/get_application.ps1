@@ -16,8 +16,9 @@ if ($CurrentUser) {
 $LocalHost = [System.Net.Dns]::GetHostname()
 $Content = foreach ($Path in $InstallPaths) {
     if (Test-Path $Path) {
-        Get-ItemProperty -Path "$Path\*" | Where-Object { $_.DisplayName -and $_.DisplayVersion -and
-        $_.Publisher } | Select-Object DisplayName, DisplayVersion, Publisher
+        Get-ItemProperty -Path "$Path\*" -ErrorAction SilentlyContinue |
+            Where-Object { $_.DisplayName -and $_.DisplayVersion -and $_.Publisher } |
+            Select-Object DisplayName, DisplayVersion, Publisher
     }
 }
 if ($Content) {
