@@ -1,10 +1,10 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
 $Winlogon = Get-ItemProperty -Path (
     'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon') -ErrorAction SilentlyContinue
-$ActiveUser = Get-ItemProperty 'HKCU:\Volatile Environment' -ErrorAction SilentlyContinue |
+$Content = Get-ItemProperty 'HKCU:\Volatile Environment' -ErrorAction SilentlyContinue |
     Select-Object USERDOMAIN, LOGONSERVER, USERNAME, USERPROFILE
-if ($ActiveUser) {
-    $ActiveUser | ForEach-Object {
+if ($Content) {
+    $Content | ForEach-Object {
         [PSCustomObject] @{
             Hostname              = $LocalHost
             LastUsedUsername      = $Winlogon.LastUsedUsername
@@ -12,7 +12,7 @@ if ($ActiveUser) {
             ActiveUserLogonServer = $_.LOGONSERVER
             ActiveUsername        = $_.USERNAME
             ActiveUserProfile     = $_.USERPROFILE
-        }
+        } | ConvertTo-Json -Compress
     }
 } else {
     [PSCustomObject] @{
@@ -22,5 +22,5 @@ if ($ActiveUser) {
         ActiveUserLogonServer = $null
         ActiveUsername        = $null
         ActiveUserProfile     = $null
-    }
+    } | ConvertTo-Json -Compress
 }
