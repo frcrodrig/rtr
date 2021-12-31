@@ -1,5 +1,5 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-Item -Path env:
+$Content = Get-Item -Path env: -ErrorAction SilentlyContinue
 if ($Content) {
     $Item = [PSCustomObject] @{ Hostname = $LocalHost }
     $Content.GetEnumerator().foreach{
