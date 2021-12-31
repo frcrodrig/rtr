@@ -1,7 +1,8 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
 $Content = @(
-    Get-NetTcpConnection | Select-Object LocalAddress, LocalPort, RemoteAddress, RemotePort, State
-    Get-NetUDPEndpoint | Select-Object LocalAddress, LocalPort
+    Get-NetTcpConnection -ErrorAction SilentlyContinue | Select-Object LocalAddress, LocalPort, RemoteAddress,
+        RemotePort, State
+    Get-NetUDPEndpoint -ErrorAction SilentlyContinue | Select-Object LocalAddress, LocalPort
 )
 if ($Content) {
     $Content | ForEach-Object {
