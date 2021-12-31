@@ -1,23 +1,25 @@
-function Get-DrivePath ([string] $String) {
-    $Definition = @’
+
+$Definition = @’
 [DllImport("kernel32.dll", SetLastError = true)]
 public static extern uint QueryDosDevice(
     string lpDeviceName,
     System.Text.StringBuilder lpTargetPath,
     uint ucchMax);
 ‘@
-    $StringBuilder = New-Object System.Text.StringBuilder(65536)
-    $Kernel32 = Add-Type -MemberDefinition $Definition -Name Kernel32 -Namespace Win32 -PassThru
-    foreach ($Volume in (Get-WmiObject Win32_Volume | Where-Object { $_.DriveLetter })) {
-        $Value = $Kernel32::QueryDosDevice($String,$StringBuilder,65536)
-        if ($Value) {
-            $StringBuilder.ToString()
+$StringBuilder = New-Object System.Text.StringBuilder(65536)
+$Kernel32 = Add-Type -MemberDefinition $Definition -Name Kernel32 -Namespace Win32 -PassThru
+Get-Volume | Select-Object DriveLetter, FileSystemLabel, FileSystem, SizeRemaining | ForEach-Object {
+    $Path = $Kernel32::QueryDosDevice("$($_.DriveLetter):",$StringBuilder,255)
+    [PSCustomObject] @{
+        Hostname        = [System.Net.Dns]::GetHostname()
+        DriveLetter     = $_.DriveLetter
+        FileSystemLabel = $_.FileSystemLabel
+        FileSystem      = $_.FileSystem
+        SizeRemaining   = $_.SizeRemaining
+        Path            = if ($Path) {
+            $Path
+        } else {
+            $null
         }
     }
-}
-$Result = Get-Volume | Select-Object DriveLetter, FileSystemLabel, FileSystem, SizeRemaining
-$Result | ForEach-Object {
-    $_.PSObject.Properties.Add((New-Object PSNoteProperty('Hostname',([System.Net.Dns]::GetHostname()))))
-    $_.PSObject.Properties.Add((New-Object PSNoteProperty('Path',(Get-DrivePath $_.DriveLetter))))
-    $_ | Select-Object Hostname, DriveLetter, FileSystemLabel, FileSystem, SizeRemaining, Path
 }
