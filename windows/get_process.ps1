@@ -1,5 +1,6 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-Process | Select-Object Name, Id, StartTime, WorkingSet, CPU, HandleCount, Path
+$Content = Get-Process -ErrorAction SilentlyContinue | Select-Object Name, Id, StartTime, WorkingSet, CPU,
+    HandleCount, Path
 if ($Content) {
     $Content | ForEach-Object {
         [PSCustomObject] @{
