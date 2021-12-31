@@ -1,5 +1,6 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-NetAdapter | Select-Object Name, InterfaceDescription, MacAddress, Status
+$Content = Get-NetAdapter -ErrorAction SilentlyContinue | Select-Object Name, InterfaceDescription,
+    MacAddress, Status
 if ($Content) {
     $Content | ForEach-Object {
         [PSCustomObject] @{
