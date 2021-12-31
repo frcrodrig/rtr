@@ -1,5 +1,5 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-WmiObject -ClassName Win32_Processor
+$Content = Get-WmiObject -ClassName Win32_Processor -ErrorAction SilentlyContinue
 if ($Content) {
     $Content | ForEach-Object {
         [PSCustomObject] @{
