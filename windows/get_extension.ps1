@@ -2,7 +2,8 @@ $Browsers = @{
     Chrome = 'AppData\Local\Google\Chrome\User Data\Default\Extensions'
     Edge   = 'AppData\Local\Microsoft\Edge\User Data\Default\Extensions'
 }
-$Output = foreach ($Path in (Get-WmiObject win32_userprofile |
+$LocalHost = [System.Net.Dns]::GetHostname()
+$Content = foreach ($Path in (Get-WmiObject win32_userprofile |
 Where-Object localpath -notmatch 'Windows').localpath) {
     foreach ($Pair in $Browsers.GetEnumerator()) {
         $Target = Join-Path -Path $Path -ChildPath $Pair.Value
@@ -13,7 +14,7 @@ Where-Object localpath -notmatch 'Windows').localpath) {
                     if (Test-Path -Path $Manifest) {
                         Get-Content $Manifest | ConvertFrom-Json | ForEach-Object {
                             [PSCustomObject] @{
-                                Hostname  = [System.Net.Dns]::GetHostname()
+                                Hostname  = $LocalHost
                                 Username  = $Path | Split-Path -Leaf
                                 Browser   = $Pair.Key
                                 Extension = if ($_.Name -notlike '__MSG*') {
@@ -36,7 +37,7 @@ Where-Object localpath -notmatch 'Windows').localpath) {
                                 }
                                 Version   = $_.Version
                                 Id        = $Folder.Name
-                            } | ConvertTo-Json -Compress
+                            }
                         }
                     }
                 }
@@ -44,8 +45,10 @@ Where-Object localpath -notmatch 'Windows').localpath) {
         }
     }
 }
-if ($Output) {
-    $Output
+if ($Content) {
+    $Content | ForEach-Object {
+        $_ | ConvertTo-Json -Compress
+    }
 } else {
     Write-Error 'no_extensions_found'
 }
