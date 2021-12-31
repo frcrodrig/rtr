@@ -1,5 +1,5 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-SmbShare
+$Content = Get-SmbShare -ErrorAction SilentlyContinue
 if ($Content) {
     $Content | ForEach-Object {
         [PSCustomObject] @{
