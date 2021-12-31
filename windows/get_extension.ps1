@@ -13,10 +13,10 @@ Where-Object localpath -notmatch 'Windows').localpath) {
                     if (Test-Path -Path $Manifest) {
                         Get-Content $Manifest | ConvertFrom-Json | ForEach-Object {
                             [PSCustomObject] @{
-                                hostname  = [System.Net.Dns]::GetHostname()
-                                username  = $Path | Split-Path -Leaf
-                                browser   = $Pair.Key
-                                extension = if ($_.Name -notlike '__MSG*') {
+                                Hostname  = [System.Net.Dns]::GetHostname()
+                                Username  = $Path | Split-Path -Leaf
+                                Browser   = $Pair.Key
+                                Extension = if ($_.Name -notlike '__MSG*') {
                                     $_.Name
                                 } else {
                                     $Id = ($_.Name -replace '__MSG_','').Trim('_')
@@ -34,8 +34,8 @@ Where-Object localpath -notmatch 'Windows').localpath) {
                                         }
                                     }
                                 }
-                                version   = $_.Version
-                                id        = $Folder.Name
+                                Version   = $_.Version
+                                Id        = $Folder.Name
                             } | ConvertTo-Json -Compress
                         }
                     }

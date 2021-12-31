@@ -67,10 +67,10 @@ process {
     Start-Process -FilePath powershell.exe -ArgumentList "-Command &{ $ScriptBlock } $Arguments" -PassThru |
     ForEach-Object {
         [PSCustomObject] @{
-            hostname = [System.Net.Dns]::GetHostname()
-            pid      = $_.Id
-            process  = $_.Name
-            message  = if ($HumioUri -and $HumioToken) {
+            Hostname = [System.Net.Dns]::GetHostname()
+            Pid      = $_.Id
+            Process  = $_.Name
+            Message  = if ($HumioUri -and $HumioToken) {
                 'check_humio_for_events'
             } else {
                 Join-Path -Path $env:SystemDrive -ChildPath "find_hash_$(Get-Date -Format FileDate).csv"

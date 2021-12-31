@@ -8,6 +8,6 @@ $Value = if ($Tags) {
 }
 [void] (reg add $Key /v GroupingTags /d $Value /f)
 [PSCustomObject] @{
-    hostname = [System.Net.Dns]::GetHostname()
-    sensor_tags = "$((((reg query $Key) -match 'GroupingTags') -split 'REG_SZ')[-1].Trim())"
+    Hostname   = [System.Net.Dns]::GetHostname()
+    SensorTag  = "$((((reg query $Key) -match 'GroupingTags') -split 'REG_SZ')[-1].Trim())"
 } | ConvertTo-Json -Compress

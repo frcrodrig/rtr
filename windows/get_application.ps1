@@ -18,10 +18,10 @@ $Output = foreach ($Path in $InstallPaths) {
         Get-ItemProperty -Path "$Path\*" | Where-Object { $_.DisplayName -and $_.DisplayVersion -and
         $_.Publisher } | Select-Object DisplayName, DisplayVersion, Publisher | ForEach-Object {
             [PSCustomObject] @{
-                hostname  = [System.Net.Dns]::GetHostname()
-                name      = $_.DisplayName
-                version   = $_.DisplayVersion
-                publisher = $_.Publisher
+                Hostname       = [System.Net.Dns]::GetHostname()
+                DisplayName    = $_.DisplayName
+                DisplayVersion = $_.DisplayVersion
+                Publisher      = $_.Publisher
             } | ConvertTo-Json -Compress
         }
     }
