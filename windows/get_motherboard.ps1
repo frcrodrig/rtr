@@ -1,5 +1,6 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-WmiObject -ClassName Win32_Baseboard | Select-Object Manufacturer, Product, Model, SerialNumber
+$Content = Get-WmiObject -ClassName Win32_Baseboard -ErrorAction SilentlyContinue | Select-Object Manufacturer,
+    Product, Model, SerialNumber
 if ($Content) {
     $Content | ForEach-Object {
         [PSCustomObject] @{
