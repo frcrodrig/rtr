@@ -1,4 +1,4 @@
-
+$LocalHost = [System.Net.Dns]::GetHostname()
 $Definition = @’
 [DllImport("kernel32.dll", SetLastError = true)]
 public static extern uint QueryDosDevice(
@@ -8,18 +8,19 @@ public static extern uint QueryDosDevice(
 ‘@
 $StringBuilder = New-Object System.Text.StringBuilder(65536)
 $Kernel32 = Add-Type -MemberDefinition $Definition -Name Kernel32 -Namespace Win32 -PassThru
-Get-Volume | Select-Object DriveLetter, FileSystemLabel, FileSystem, SizeRemaining | ForEach-Object {
-    $Path = $Kernel32::QueryDosDevice("$($_.DriveLetter):",$StringBuilder,255)
-    [PSCustomObject] @{
-        Hostname        = [System.Net.Dns]::GetHostname()
-        DriveLetter     = $_.DriveLetter
-        FileSystemLabel = $_.FileSystemLabel
-        FileSystem      = $_.FileSystem
-        SizeRemaining   = $_.SizeRemaining
-        Path            = if ($Path) {
-            $Path
-        } else {
-            $null
-        }
-    } | ConvertTo-Json -Compress
+$Content = Get-Volume | Select-Object DriveLetter, FileSystemLabel, FileSystem, SizeRemaining
+if ($Content) {
+    $Content | ForEach-Object {
+        $DevicePath = $Kernel32::QueryDosDevice("$($_.DriveLetter):",$StringBuilder,255)
+        [PSCustomObject] @{
+            Hostname        = $LocalHost
+            DriveLetter     = $_.DriveLetter
+            FileSystemLabel = $_.FileSystemLabel
+            FileSystem      = $_.FileSystem
+            SizeRemaining   = $_.SizeRemaining
+            DevicePath      = $DevicePath
+        } | ConvertTo-Json -Compress
+    }
+} else {
+    Write-Error 'no_volume_found'
 }
