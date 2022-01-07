@@ -1,15 +1,14 @@
 $ScriptBlock = {
     if (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue) {
-        C:\cast.exe scan C:\ *>&1 | ForEach-Object {
-            Send-ToHumio $_
-        }
+        $Result = C:\cast.exe scan C:\ *>&1
+        Send-ToHumio $Result
     } else {
         $Param = @{
             FilePath               = 'C:\cast.exe'
             ArgumentList           = 'scan C:\'
             RedirectStandardOutput = 'C:\cast.json'
         }
-        Start-Process @Param
+        Start-Process @Param -Wait
     }
     if (Test-Path 'C:\cast.exe') {
         Remove-Item -Path 'C:\cast.exe'
