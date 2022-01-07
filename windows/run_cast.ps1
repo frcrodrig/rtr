@@ -1,12 +1,13 @@
 $ScriptBlock = {
     if (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue) {
-        Send-ToHumio (C:\cast.exe scan C:\ *>&1)
+        C:\cast.exe scan C:\ *>&1 | ForEach-Object {
+            Send-ToHumio $_
+        }
     } else {
         $Param = @{
             FilePath               = 'C:\cast.exe'
             ArgumentList           = 'scan C:\'
             RedirectStandardOutput = 'C:\cast.json'
-            RedirectStandardError  = 'C:\cast.json'
         }
         Start-Process @Param
     }
