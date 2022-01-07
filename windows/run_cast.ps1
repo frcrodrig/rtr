@@ -1,20 +1,20 @@
 $ScriptBlock = {
-    if (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue) {
-        $Result = C:\cast.exe scan C:\ *>&1
-        Send-ToHumio @($Result)
-    } else {
-        $Param = @{
-            FilePath               = 'C:\cast.exe'
-            ArgumentList           = 'scan C:\'
-            RedirectStandardOutput = 'C:\cast.json'
-        }
-        Start-Process @Param -Wait
+    if (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue) { 
+        Send-ToHumio (@{ ProcessInit = 'C:\cast.exe' })
+    }
+    Start-Process -FilePath C:\cast.exe -ArgumentList 'scan C:\' -RedirectStandardOutput 'C:\cast.json' -Wait
+    if (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue) { 
+        Send-ToHumio @((Get-Content 'C:\cast.json').Normalize() -split '\n' | ForEach-Object {
+            $_ | ConvertFrom-Json
+        })
+        $JsonStatus = if (Test-Path -Path 'C:\cast.json') { 'FailedToRemove' } else { 'Removed' }
+        Send-ToHumio (@{ $JsonStatus = 'C:\cast.json' })
     }
     if (Test-Path 'C:\cast.exe') {
         Remove-Item -Path 'C:\cast.exe'
     }
     if (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue) { 
-        $ExeStatus = if (Test-Path -Path 'C:\cast.exe') { 'Failed_To_Remove' } else { 'Removed' }
+        $ExeStatus = if (Test-Path -Path 'C:\cast.exe') { 'FailedToRemove' } else { 'Removed' }
         Send-ToHumio (@{ $ExeStatus = 'C:\cast.exe' })
     }
 }
