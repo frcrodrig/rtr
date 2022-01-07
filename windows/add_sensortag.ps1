@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 1)]
-    [array] $Tags,
+    [string] $Tags,
 
     [Parameter(Position = 2)]
     [System.Uri] $HumioUri,
