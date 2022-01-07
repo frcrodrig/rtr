@@ -1,7 +1,6 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 1)]
-    [ValidateScript({ Test-Path $_ })]
     [array] $Tags,
 
     [Parameter(Position = 2)]
