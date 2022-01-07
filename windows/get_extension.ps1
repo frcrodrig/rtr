@@ -1,8 +1,8 @@
+$LocalHost = [System.Net.Dns]::GetHostname()
 $Browsers = @{
     Chrome = 'AppData\Local\Google\Chrome\User Data\Default\Extensions'
     Edge   = 'AppData\Local\Microsoft\Edge\User Data\Default\Extensions'
 }
-$LocalHost = [System.Net.Dns]::GetHostname()
 $Content = foreach ($Path in (Get-WmiObject win32_userprofile |
 Where-Object localpath -notmatch 'Windows').localpath) {
     foreach ($Pair in $Browsers.GetEnumerator()) {
@@ -45,10 +45,17 @@ Where-Object localpath -notmatch 'Windows').localpath) {
         }
     }
 }
-if ($Content) {
-    $Content | Where-Object { $_ } | ForEach-Object {
+if ($Content -and (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue)) {
+    Send-ToHumio $Content
+    ConvertTo-Json -InputObject ([PSCustomObject] @{
+        Host    = $LocalHost
+        Script  = 'get_extension.ps1'
+        Message = 'check_humio_for_result'
+    }) -Compress
+} elseif ($Content) {
+    $Content | ForEach-Object {
         $_ | ConvertTo-Json -Compress
     }
 } else {
-    Write-Error 'no_extensions_found'
+    Write-Error 'no_extension_found'
 }

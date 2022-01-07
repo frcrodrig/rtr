@@ -1,24 +1,28 @@
 $LocalHost = [System.Net.Dns]::GetHostname()
-$Content = foreach ($Username in (Get-WmiObject Win32_ComputerSystem -ErrorAction SilentlyContinue).UserName) {
-    $UserSid = (Get-WmiObject Win32_UserAccount -ErrorAction SilentlyContinue | Where-Object {
-        $_.Caption -eq $Username }).SID
-    if ($UserSid) {
-        [void] (New-PSDrive -PSProvider Registry -Name HKU -Root HKEY_USERS)
-        Get-ChildItem -Path "HKU:\$UserSid\Network" | ForEach-Object {
-            Split-Path -Path $_.Name -Leaf | ForEach-Object {
-                [PSCustomObject] @{
-                    Hostname   = $LocalHost
-                    Sid        = $UserSid
-                    Username   = $Username
-                    Share      = $_
-                    RemotePath = Get-ItemPropertyValue -Path $_ -Name RemotePath
-                }
+$Content = foreach ($UserSid in (Get-WmiObject Win32_UserProfile | Where-Object {
+$_.SID -like 'S-1-5-21-*' }).SID) {
+    Get-ItemProperty -Path "Registry::\HKEY_USERS\$UserSid\Network" -ErrorAction SilentlyContinue |
+    ForEach-Object {
+        Split-Path -Path $_.Name -Leaf | ForEach-Object {
+            [PSCustomObject] @{
+                Host       = $LocalHost
+                Sid        = $UserSid
+                Username   = $Username
+                Share      = $_
+                RemotePath = Get-ItemPropertyValue -Path $_ -Name RemotePath
             }
         }
     }
 }
-if ($Content) {
-    $Content | Where-Object { $_ } | ForEach-Object {
+if ($Content -and (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue)) {
+    Send-ToHumio $Content
+    ConvertTo-Json -InputObject ([PSCustomObject] @{
+        Host    = $LocalHost
+        Script  = 'get_remote_share.ps1'
+        Message = 'check_humio_for_result'
+    }) -Compress
+} elseif ($Content) {
+    $Content | ForEach-Object {
         $_ | ConvertTo-Json -Compress
     }
 } else {

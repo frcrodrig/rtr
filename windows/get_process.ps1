@@ -2,7 +2,7 @@ $LocalHost = [System.Net.Dns]::GetHostname()
 $Content = Get-Process -ErrorAction SilentlyContinue | Select-Object Name, Id, StartTime, WorkingSet, CPU,
 HandleCount, Path | ForEach-Object {
     [PSCustomObject] @{
-        Hostname    = $LocalHost
+        Host        = $LocalHost
         Id          = $_.Id
         Name        = $_.Name
         StartTime   = $_.StartTime
@@ -15,13 +15,13 @@ HandleCount, Path | ForEach-Object {
 if ($Content -and (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue)) {
     Send-ToHumio $Content
     ConvertTo-Json -InputObject ([PSCustomObject] @{
-        host   = $LocalHost
-        script = 'get_process.ps1'
-        message = 'check_humio_for_result'
+        Host    = $LocalHost
+        Script  = 'get_process.ps1'
+        Message = 'check_humio_for_result'
     }) -Compress
 } elseif ($Content) {
-    @($Content).foreach{
-        ConvertTo-Json -InputObject $_ -Compress
+    $Content | ForEach-Object {
+        $_ | ConvertTo-Json -Compress
     }
 } else {
     Write-Error 'no_process_found'
