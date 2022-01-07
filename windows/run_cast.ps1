@@ -1,7 +1,7 @@
 $ScriptBlock = {
     if (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue) {
         $Result = C:\cast.exe scan C:\ *>&1
-        Send-ToHumio $Result
+        Send-ToHumio @($Result)
     } else {
         $Param = @{
             FilePath               = 'C:\cast.exe'
