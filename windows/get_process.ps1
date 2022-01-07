@@ -13,7 +13,7 @@ HandleCount, Path | ForEach-Object {
     }
 }
 if ($Content -and (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue)) {
-    SendTo-Humio $Content
+    Send-ToHumio $Content
     ConvertTo-Json -InputObject ([PSCustomObject] @{
         host   = $LocalHost
         script = 'get_process.ps1'
