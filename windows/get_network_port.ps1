@@ -1,5 +1,5 @@
-$Obj=@((Get-NetTcpConnection -EA 0|select LocalAddress,LocalPort,RemoteAddress,RemotePort,State),
-    (Get-NetUDPEndpoint -EA 0|select LocalAddress,LocalPort))
+$Obj=@(@(Get-NetTcpConnection -EA 0|select LocalAddress,LocalPort,RemoteAddress,RemotePort,State)+
+    @(Get-NetUDPEndpoint -EA 0|select LocalAddress,LocalPort))
 $Obj=$Obj|%{[PSCustomObject]@{Protocol=if($_.State){'TCP'}else{'UDP'};LocalAddress=$_.LocalAddress;
     LocalPort=$_.LocalPort; RemoteAddress=$_.RemoteAddress;RemotePort=$_.RemotePort;State=$_.State}}
 $Out=[PSCustomObject]@{Host=[System.Net.Dns]::GetHostname();Script='get_network_port.ps1';
