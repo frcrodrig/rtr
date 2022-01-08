@@ -1,4 +1,6 @@
-$Obj=Get-Item -Path env: -EA 0
+$Obj=[PSCustomObject]@{}
+(Get-Item -Path env: -EA 0).GetEnumerator().foreach{
+    $Obj.PSObject.Properties.Add((New-Object PSNoteProperty($_.Key,$_.Value)))}
 $Out=[PSCustomObject]@{Host=[System.Net.Dns]::GetHostname();Script='get_powershell_env.ps1';
     Message='no_powershell_env'}
 if(gcm shumio -EA 0){
