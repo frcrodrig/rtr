@@ -1,5 +1,5 @@
 $Obj=Get-Process -EA 0|select Name,Id,StartTime,WorkingSet,CPU,HandleCount,Path|%{
-    [PSCustomObject]@{Id=$_.Id;Name=$_.Name;StartTime=$_.StartTime;WorkingSet=$_.WorkingSet;
+    [PSCustomObject]@{Id=$_.Id;Name=$_.Name;StartTime=$_.StartTime.ToFileTimeUtc();WorkingSet=$_.WorkingSet;
     CPU=$_.CPU;HandleCount=$_.HandleCount;Path=$_.Path}}
 $Out=[PSCustomObject]@{Host=[System.Net.Dns]::GetHostname();Script='get_process.ps1';Message='no_process'}
 if(gcm shumio -EA 0){
