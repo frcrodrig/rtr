@@ -27,9 +27,9 @@ begin {
                 '{16e0423f-7058-48c9-a204-725362b67639}\Default'
             if (Test-Path $IdPath) {
                 $Fields.Add('cid',([System.BitConverter]::ToString((
-                    (gp $IdPath -Name CU).CU)).ToLower() -replace '-',''))
+                    (Get-ItemProperty $IdPath -Name CU).CU)).ToLower() -replace '-',''))
                 $Fields.Add('aid',([System.BitConverter]::ToString((
-                    (gp $IdPath -Name AG).AG)).ToLower() -replace '-',''))
+                    (Get-ItemProperty $IdPath -Name AG).AG)).ToLower() -replace '-',''))
             }
             $Request = @{
                 Uri             = $HumioUri
@@ -38,7 +38,7 @@ begin {
                 Body            = @{ fields = $Fields; messages = $Result }
                 UseBasicParsing = $true
             }
-            $Request.Body = ConvertTo-Json -InputObject $Request.Body -Compress
+            $Request.Body = $Request.Body | ConvertTo-Json -Compress
             [void](Invoke-WebRequest @Request)
         }
         $Param = @{
@@ -47,12 +47,12 @@ begin {
             Recurse     = $true
             ErrorAction = 'SilentlyContinue'
         }
-        Get-ChildItem @Param | % {
-            Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName | ? Hash -eq $Hash.ToUpper() |
-            select Hash, Path | % {
+        Get-ChildItem @Param | ForEach-Object {
+            Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName | Where-Object Hash -eq $Hash.ToUpper() |
+            Select-Object Hash, Path | ForEach-Object {
                 if ($HumioUri -and $HumioToken) {
                     Send-HumioEvent $_ $HumioUri $HumioToken
-                }else{
+                } else {
                     $_ | Export-Csv -Path (Join-Path -Path $env:SystemDrive -ChildPath "find_hash_$(
                         Get-Date -Format FileDate).csv") -NoTypeInformation -Append
                 }
@@ -65,16 +65,16 @@ begin {
 }
 process {
     Start-Process -FilePath powershell.exe -ArgumentList "-Command &{ $ScriptBlock } $Arguments" -PassThru |
-    % {
+    ForEach-Object {
         [PSCustomObject]@{
             Hostname = [System.Net.Dns]::GetHostname()
             Pid      = $_.Id
             Process  = $_.Name
-            Message  =if($HumioUri -and $HumioToken) {
-                'check_humio_for_events'
-            }else{
+            Message  = if ($HumioUri -and $HumioToken) {
+                'check_humio'
+            } else {
                 Join-Path -Path $env:SystemDrive -ChildPath "find_hash_$(Get-Date -Format FileDate).csv"
             }
-        }|ConvertTo-Json -Compress
+        } | ConvertTo-Json -Compress
     }
 }
