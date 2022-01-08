@@ -5,11 +5,11 @@ public static extern uint QueryDosDevice(
     System.Text.StringBuilder lpTargetPath,
     uint ucchMax);
 ‘@
-$StrBld=New-Object System.Text.StringBuilder(255)
+$StrBld=New-Object System.Text.StringBuilder(65535)
 $K32=Add-Type -MemberDefinition $Def -Name Kernel32 -Namespace Win32 -PassThru
-$Obj=Get-Volume -EA 0|select DriveLetter,FileSystemLabel,FileSystem,SizeRemaining|%{
-    $NtPath=$K32::QueryDosDevice("$($_.DriveLetter):",$StrBld,255);[PSCustomObject]@{DriveLetter=$_.DriveLetter;
-    FileSystemLabel=$_.FileSystemLabel;FileSystem=$_.FileSystem;SizeRemaining=$_.SizeRemaining;NtPath=$NtPath}}
+$Obj=Get-Volume -EA 0|select DriveLetter,FileSystemLabel,FileSystem,SizeRemaining|%{[PSCustomObject]@{
+    DriveLetter=$_.DriveLetter;FileSystemLabel=$_.FileSystemLabel;FileSystem=$_.FileSystem;
+    SizeRemaining=$_.SizeRemaining;NtPath=$K32::QueryDosDevice("$($_.DriveLetter):",$StrBld,255)}}
 $Out=[PSCustomObject]@{Host=[System.Net.Dns]::GetHostname();Script='get_volume.ps1';Message='no_volume'}
 if(gcm shumio -EA 0){
     if($Obj){shumio $Obj;$Out|%{$_.Message='check_humio';$_|ConvertTo-Json -Compress}
