@@ -1,24 +1,9 @@
-$LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-SmbShare -ErrorAction SilentlyContinue | ForEach-Object {
-    [PSCustomObject] @{
-        Host        = $LocalHost
-        Name        = $_.Name
-        ScopeName   = $_.ScopeName
-        Path        = $_.Path
-        Description = $_.Description
-    }
-}
-if ($Content -and (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue)) {
-    Send-ToHumio $Content
-    ConvertTo-Json -InputObject ([PSCustomObject] @{
-        Host    = $LocalHost
-        Script  = 'get_local_share.ps1'
-        Message = 'check_humio_for_result'
-    }) -Compress
-} elseif ($Content) {
-    $Content | ForEach-Object {
-        $_ | ConvertTo-Json -Compress
-    }
-} else {
-    Write-Error 'no_local_share_found'
-}
+$Obj=Get-SmbShare -EA 0|%{[PSCustomObject]@{Name=$_.Name;ScopeName=$_.ScopeName;Path=$_.Path;
+    Description=$_.Description}}
+$Out=[PSCustomObject]@{Host=[System.Net.Dns]::GetHostname();Script='get_local_share.ps1';Message='no_local_share'}
+if(gcm shumio -EA 0){
+    if($Obj){shumio $Obj;$Out|%{$_.Message='check_humio';$_|ConvertTo-Json -Compress}
+    }else{$Out|%{shumio ($_|select Script, Message);Write-Error $_.Message}}
+}elseif($Obj){
+    $Obj|%{$_.PSObject.Properties.Add((New-Object PSNoteProperty('Host',$Out.Host)));$_|ConvertTo-Json -Compress}
+}else{Write-Error $Out.Message}

@@ -1,24 +1,16 @@
-$LocalHost = [System.Net.Dns]::GetHostname()
-$Content = ('Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
+$Obj=('Software\Microsoft\Windows\CurrentVersion\Uninstall\*',
 'Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*').foreach{
-    Get-ItemProperty -Path "Registry::\HKEY_LOCAL_MACHINE\$_" -ErrorAction SilentlyContinue | Where-Object {
-        $_.DisplayName -and $_.DisplayVersion -and $_.Publisher } | Select-Object DisplayName, DisplayVersion,
-        Publisher
-    foreach ($UserSid in (Get-WmiObject Win32_UserProfile | Where-Object { $_.SID -like 'S-1-5-21-*' }).SID) {
-        Get-ItemProperty -Path "Registry::\HKEY_USERS\$UserSid\$_" -ErrorAction SilentlyContinue | Where-Object {
-            $_.DisplayName -and $_.DisplayVersion -and $_.Publisher } | Select-Object DisplayName, DisplayVersion,
-            Publisher
+    gp -Path "Registry::\HKEY_LOCAL_MACHINE\$_" -EA 0|?{$_.DisplayName -and $_.DisplayVersion -and $_.Publisher}|
+        select DisplayName,DisplayVersion,Publisher
+    foreach ($Sid in (gwmi Win32_UserProfile|?{$_.SID -like 'S-1-5-21-*'}).SID) {
+        gp -Path "Registry::\HKEY_USERS\$Sid\$_" -EA 0|?{$_.DisplayName -and $_.DisplayVersion -and $_.Publisher}|
+            select DisplayName,DisplayVersion,Publisher
     }
 }
-if ($Content) {
-    $Content | Where-Object { $_ } | ForEach-Object {
-        [PSCustomObject] @{
-            Hostname       = $LocalHost
-            DisplayName    = $_.DisplayName
-            DisplayVersion = $_.DisplayVersion
-            Publisher      = $_.Publisher
-        } | ConvertTo-Json -Compress
-    }
-} else {
-    Write-Error 'no_application_found'
-}
+$Out=[PSCustomObject]@{Host=[System.Net.Dns]::GetHostname();Script='get_application.ps1';Message='no_application'}
+if(gcm shumio -EA 0){
+    if($Obj){shumio $Obj;$Out|%{$_.Message='check_humio';$_|ConvertTo-Json -Compress}
+    }else{$Out|%{shumio ($_|select Script,Message);Write-Error $_.Message}}
+}elseif($Obj){
+    $Obj|%{$_.PSObject.Properties.Add((New-Object PSNoteProperty('Host',$Out.Host)));$_|ConvertTo-Json -Compress}
+}else{Write-Error $Out.Message}

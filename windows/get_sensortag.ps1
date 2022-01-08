@@ -1,17 +1,6 @@
-$LocalHost = [System.Net.Dns]::GetHostname()
-$Key = 'HKEY_LOCAL_MACHINE\SYSTEM\CrowdStrike\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\' +
+$Key='HKEY_LOCAL_MACHINE\SYSTEM\CrowdStrike\{9b03c1d9-3138-44ed-9fae-d9f4c034b88d}\'+
     '{16e0423f-7058-48c9-a204-725362b67639}\Default'
-$Content = "$((((reg query $Key) -match 'GroupingTags') -split 'REG_SZ')[-1].Trim())"
-if ($Content -and (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue)) {
-    Send-ToHumio ([PSCustomObject] @{ SensorTag = $Content })
-    ConvertTo-Json -InputObject ([PSCustomObject] @{
-        Host    = $LocalHost
-        Script  = 'get_sensortag.ps1'
-        Message = 'check_humio_for_result'
-    }) -Compress
-} else {
-    [PSCustomObject] @{
-        Host      = $LocalHost
-        SensorTag = $Content
-    }
-}
+$Obj="$((((reg query $Key) -match 'GroupingTags') -split 'REG_SZ')[-1].Trim())"
+$Out=[PSCustomObject]@{Host=[System.Net.Dns]::GetHostname();Script='get_sensortag.ps1';Message='check_humio'}
+if(gcm shumio -EA 0){shumio ([PSCustomObject]@{SensorTag=$Obj});$Out|%{$_|ConvertTo-Json -Compress}
+}else{[PSCustomObject]@{Host=$Out.Host;SensorTag=$Obj}|ConvertTo-Json -Compress}

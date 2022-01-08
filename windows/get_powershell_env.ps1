@@ -1,18 +1,9 @@
-$LocalHost = [System.Net.Dns]::GetHostname()
-$Content = Get-Item -Path env: -ErrorAction SilentlyContinue | ForEach-Object {
-    $_.PSObject.Properties.Add((New-Object PSNoteProperty('Host', $LocalHost)))
-}
-if ($Content -and (Get-Command -Name Send-ToHumio -ErrorAction SilentlyContinue)) {
-    Send-ToHumio $Content
-    ConvertTo-Json -InputObject ([PSCustomObject] @{
-        Host    = $LocalHost
-        Script  = 'get_bitlocker_volume.ps1'
-        Message = 'check_humio_for_result'
-    }) -Compress
-} elseif ($Content) {
-    $Content | ForEach-Object {
-        $_ | ConvertTo-Json -Compress
-    }
-} else {
-    Write-Error 'no_powershell_env_found'
-}
+$Obj=Get-Item -Path env: -EA 0
+$Out=[PSCustomObject]@{Host=[System.Net.Dns]::GetHostname();Script='get_powershell_env.ps1';
+    Message='no_powershell_env'}
+if(gcm shumio -EA 0){
+    if($Obj){shumio $Obj;$Out|%{$_.Message='check_humio';$_|ConvertTo-Json -Compress}
+    }else{$Out|%{shumio ($_|select Script, Message);Write-Error $_.Message}}
+}elseif($Obj){
+    $Obj|%{$_.PSObject.Properties.Add((New-Object PSNoteProperty('Host',$Out.Host)));$_|ConvertTo-Json -Compress}
+}else{Write-Error $Out.Message}
